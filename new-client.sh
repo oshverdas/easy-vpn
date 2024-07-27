@@ -86,3 +86,5 @@ if which zip; then
     zip -r ${client_name}.zip $client_name
     popd
 fi
+
+readlink -f $client_output_dir*
