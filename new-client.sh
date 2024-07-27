@@ -72,7 +72,7 @@ mkdir -p $client_output_certs_dir
 
 echo "Generating $client_output_ovpn_file"
 
-cat $client_ovpn_template >$client_output_ovpn_file
+subst_config $client_ovpn_template >$client_output_ovpn_file
 print_cert $client_cert_inline >>$client_output_ovpn_file
 echo '<tls-auth>' >>$client_output_ovpn_file
 print_cert $ta_key >>$client_output_ovpn_file
@@ -82,7 +82,7 @@ cp -v $ca_crt $ta_key $client_cert_crt $client_cert_key $client_cert_inline $cli
 
 if which zip; then
     pushd $output_dir
-    tar cJf ${client_name}.tar.xz $client_name
+    tar czf ${client_name}.tar.gz $client_name
     zip -r ${client_name}.zip $client_name
     popd
 fi
