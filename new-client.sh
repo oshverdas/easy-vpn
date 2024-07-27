@@ -1,56 +1,60 @@
 #!/bin/bash
 set -u
 
-easyrsa_dir=$HOME/openvpn-ca
+source $(dirname $0)/common-src.sh
 
-client_ovpn_template=client-template.ovpn
+client_ovpn_template=$script_dir/client-template.ovpn
 
-if [ $# -eq 0 ]; then
+if [ $# -lt 2 ]; then
     echo "Creates client certificate signed by CA"
+    echo ""
     echo "Usage:"
-    echo "  $(basename $0) [Options] <unique-client-name>"
+    echo "  $script (create|update) <unique-client-name>"
+    echo ""
+    echo "  create: create new client certificate with easy-rsa"
+    echo "  update: update .ovpn file and zip archive"
     exit
 fi
 
-verify_path()
-{
-    if [ ! -e ${1?Internal error: path expected} ]; then
-        echo "$1 does not exist" >&2
-        echo "Possible reasons:" >&2
-        echo "  easyrsa is not configured" >&2
-        echo "  some paths have changed in newer version of easyrsa" >&2
-        exit 1
-    fi
-}
+case "$1" in
+    create|update)
+        mode=$1
+        ;;
+    *)
+        err_exit "Unexpected arg 1: $1"
+        ;;
+esac
+
+client_name="$2"
+
+if echo "$client_name" | grep -q '[^a-zA-Z0-9_\-]'; then
+    err_exit "'$client_name' contains symbols other than [a-zA-Z0-9_\-]"
+fi
 
 verify_path $easyrsa_dir
 
-client_name="$1"
-if echo "$client_name" | grep -q '[^a-zA-Z0-9_\-]'; then
-    echo "Error: '$client_name' contains symbols other than [a-zA-Z0-9_\-]" >&2
-    exit 1
-fi
-
-if [ -e $client_name ]; then
-    echo "Error: '$client_name' already exists" >&2
-    exit 1
-fi
-
-pushd $easyrsa_dir
-
-./easyrsa --nopass build-client-full $client_name
-if [ $? != 0 ]; then
-    "A call to easyrsa has failed" >&2
-    exit $?
-fi
-
-popd
-
 ca_crt=$easyrsa_dir/pki/ca.crt
 ta_key=$easyrsa_dir/ta.key
+client_cert_req=$easyrsa_dir/pki/reqs/$client_name.req
 client_cert_crt=$easyrsa_dir/pki/issued/$client_name.crt
 client_cert_key=$easyrsa_dir/pki/private/$client_name.key
 client_cert_inline=$easyrsa_dir/pki/inline/$client_name.inline
+
+if [ $mode = create ] && [ -e $client_cert_req ]; then
+    err_exit "'$client_name' already exists"
+elif [ $mode = update ] && [ ! -e $client_cert_req ]; then
+    err_exit "'$client_name' doesn't exist"
+fi
+
+
+if [ $mode = create ]; then
+    pushd $easyrsa_dir
+    ./easyrsa --nopass build-client-full $client_name
+    if [ $? != 0 ]; then
+        err_exit "A call to easyrsa has failed"
+    fi
+    popd
+fi
 
 verify_path $ca_crt
 verify_path $ta_key
@@ -58,33 +62,27 @@ verify_path $client_cert_crt
 verify_path $client_cert_key
 verify_path $client_cert_inline
 
-output_dir=$client_name
-output_ovpn_file=$output_dir/$client_name.ovpn
-output_cert_dir=$output_dir/certs
+output_dir=output
+client_output_dir=$output_dir/$client_name
+client_output_certs_dir=$client_output_dir/certs
+client_output_ovpn_file=$client_output_dir/$client_name.ovpn
 
-# Leave only PEM part
-pem()
-{
-    awk '/^-+BEGIN/{p=1} /^-+END/{p=2} {if (p) print $0; if (p>1) exit}' ${1?Internal error: path expected}
-}
+mkdir -p $client_output_dir
+mkdir -p $client_output_certs_dir
 
-print_cert()
-{
-    cat ${1?Internal error: path expected} | grep -vP '^(#|$)'
-}
+echo "Generating $client_output_ovpn_file"
 
-mkdir $output_dir
-mkdir $output_cert_dir
+cat $client_ovpn_template >$client_output_ovpn_file
+print_cert $client_cert_inline >>$client_output_ovpn_file
+echo '<tls-auth>' >>$client_output_ovpn_file
+print_cert $ta_key >>$client_output_ovpn_file
+echo '</tls-auth>' >>$client_output_ovpn_file
 
-echo "Generating $output_ovpn_file"
-cat $client_ovpn_template >$output_ovpn_file
-print_cert $client_cert_inline >>$output_ovpn_file
-echo '<tls-auth>' >>$output_ovpn_file
-print_cert $ta_key >>$output_ovpn_file
-echo '</tls-auth>' >>$output_ovpn_file
-
-cp -v $ca_crt $ta_key $client_cert_crt $client_cert_key $client_cert_inline $output_cert_dir/
+cp -v $ca_crt $ta_key $client_cert_crt $client_cert_key $client_cert_inline $client_output_certs_dir/
 
 if which zip; then
-    zip -r ${output_dir}.zip $output_dir
+    pushd $output_dir
+    tar cJf ${client_name}.tar.xz $client_name
+    zip -r ${client_name}.zip $client_name
+    popd
 fi
