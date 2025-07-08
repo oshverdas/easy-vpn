@@ -36,14 +36,17 @@ verify_path $config
 
 ca_crt=$easyrsa_dir/pki/ca.crt
 ta_key=$easyrsa_dir/ta.key
-client_cert_req=$easyrsa_dir/pki/reqs/$client_name.req
-client_cert_crt=$easyrsa_dir/pki/issued/$client_name.crt
+#client_cert_req=$easyrsa_dir/pki/reqs/$client_name.req
+#client_cert_crt=$easyrsa_dir/pki/issued/$client_name.crt
 client_cert_key=$easyrsa_dir/pki/private/$client_name.key
-client_cert_inline=$easyrsa_dir/pki/inline/private/$client_name.inline
+client_cert_inline=$easyrsa_dir/pki/inline/$client_name.inline
+if ! [ -e $client_cert_inline ]; then
+    client_cert_inline=$easyrsa_dir/pki/inline/private/$client_name.inline
+fi
 
-if [ $mode = create ] && [ -e $client_cert_req ]; then
+if [ $mode = create ] && [ -e $client_cert_key ]; then
     err_exit "'$client_name' already exists"
-elif [ $mode = update ] && [ ! -e $client_cert_req ]; then
+elif [ $mode = update ] && [ ! -e $client_cert_key ]; then
     err_exit "'$client_name' doesn't exist"
 fi
 
@@ -59,8 +62,8 @@ fi
 
 verify_path $ca_crt
 verify_path $ta_key
-verify_path $client_cert_crt
-verify_path $client_cert_key
+#verify_path $client_cert_crt
+#verify_path $client_cert_key
 verify_path $client_cert_inline
 
 output_dir=output
