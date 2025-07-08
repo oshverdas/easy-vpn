@@ -64,30 +64,29 @@ verify_path $client_cert_key
 verify_path $client_cert_inline
 
 output_dir=output
-client_output_dir=$output_dir/$client_name
-client_output_ovpn_file=$client_output_dir/$client_name.ovpn
+client_ovpn_file=$output_dir/$client_name.ovpn
 
-mkdir -p $client_output_dir
+echo "Generating $client_ovpn_file"
 
-echo "Generating $client_output_ovpn_file"
+apply_config $client_ovpn_template >$client_ovpn_file
+print_cert $client_cert_inline >>$client_ovpn_file
+echo '<tls-auth>' >>$client_ovpn_file
+print_cert $ta_key >>$client_ovpn_file
+echo '</tls-auth>' >>$client_ovpn_file
 
-apply_config $client_ovpn_template >$client_output_ovpn_file
-print_cert $client_cert_inline >>$client_output_ovpn_file
-echo '<tls-auth>' >>$client_output_ovpn_file
-print_cert $ta_key >>$client_output_ovpn_file
-echo '</tls-auth>' >>$client_output_ovpn_file
-
+#client_output_dir=$output_dir/$client_name
+#mkdir -p $client_output_dir
 #client_output_certs_dir=$client_output_dir/certs
 #mkdir -p $client_output_certs_dir
 #cp -v $ca_crt $ta_key $client_cert_crt $client_cert_key \
 #    $client_cert_inline $client_output_certs_dir/
 
-pushd $output_dir
-if which zip; then
-    zip -rv ${client_name}.zip $client_name
-else
-    tar czf ${client_name}.tar.gz $client_name
+if which zip &>/dev/null; then
+    pushd $output_dir
+    archive=${client_name}.zip
+    zip -r $archive $(basename $client_ovpn_file)
+    popd
+    echo "$archive"
 fi
-popd
 
-readlink -f $client_output_dir*
+echo "Done"
