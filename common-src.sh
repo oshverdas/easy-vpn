@@ -57,15 +57,15 @@ make_ca_dir()
     local easy_rsa_files
     if [ -d /usr/share/easy-rsa ]; then
         easy_rsa_files=/usr/share/easy-rsa
-        if [ -x /usr/share/easy-rsa/easyrsa ]; then
-            sudo ln -sv /usr/share/easy-rsa/easyrsa /usr/local/bin/
+        if [ -x $easy_rsa_files/easyrsa ]; then
+            sudo ln -sv $easy_rsa_files/easyrsa /usr/local/bin/
         fi
     else
         easy_rsa_files=/etc/easy-rsa
     fi
-    ln -sv $easy_rsa_files/* "$1"
-    rm -fv "$1"/vars "$1"/*.cnf
-    cp -v $easy_rsa_files/vars $easy_rsa_files/*.cnf "$1"
+    ln -s $easy_rsa_files/x509-types "$1"
+    cp $easy_rsa_files/openssl-easyrsa.cnf "$1"
+    cp $easy_rsa_files/vars* "$1/vars"
 }
 
 script="$(basename $0)"
