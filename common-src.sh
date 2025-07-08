@@ -40,21 +40,34 @@ gen_port()
     echo $((RANDOM % ($port_max - $port_min) + $port_min))
 }
 
-subst_config()
+apply_config()
 {
-    verify_path $vpn_ip_file
-    verify_path $vpn_port_file
-    sed -e "s/@VPN_IP@/$(cat $vpn_ip_file)/" \
-        -e "s/@VPN_PORT@/$(cat $vpn_port_file)/" \
+    source $config
+    sed -e "s/@SERVER_IP@/$SERVER_IP/" \
+        -e "s/@SERVER_PORT@/$SERVER_PORT/" \
+        -e "s/@SCRAMBLE@/$SCRAMBLE/" \
         $1
 }
 
+make_ca_dir()
+{
+    [ -e "$1" ] && { echo "$1 exists. Aborting." ; return 1 ; }
+    mkdir -p "$1"
+    chmod 700 "$1"
+    local easy_rsa_files
+    if [ -d /usr/share/easy-rsa ]; then
+        easy_rsa_files=/usr/share/easy-rsa
+    else
+        easy_rsa_files=/etc/easy-rsa
+    fi
+    ln -sv $easy_rsa_files/* "$1"
+    rm -fv "$1"/vars "$1"/*.cnf
+    cp -v $easy_rsa_files/vars $easy_rsa_files/*.cnf "$1"
+}
 
 script="$(basename $0)"
 script_dir="$(dirname $0)"
 
-easyrsa_dir=$HOME/openvpn-ca
-
 output_dir=$script_dir/output
-vpn_ip_file=$output_dir/vpn_ip
-vpn_port_file=$output_dir/vpn_port
+easyrsa_dir=$output_dir/openvpn-ca
+config=$script_dir/output/config.sh
