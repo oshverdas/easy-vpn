@@ -57,6 +57,9 @@ make_ca_dir()
     local easy_rsa_files
     if [ -d /usr/share/easy-rsa ]; then
         easy_rsa_files=/usr/share/easy-rsa
+        if [ -x /usr/share/easy-rsa/easyrsa ]; then
+            sudo ln -sv /usr/share/easy-rsa/easyrsa /usr/local/bin/
+        fi
     else
         easy_rsa_files=/etc/easy-rsa
     fi
