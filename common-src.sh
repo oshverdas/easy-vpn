@@ -28,25 +28,21 @@ print_cert()
     cat "$1" | grep -vP '^(#|$)'
 }
 
-my_ip()
-{
-    curl ifconfig.me
-}
-
-gen_port()
-{
-    local port_min=${1:-49152}
-    local port_max=${2:-65535}
-    echo $((RANDOM % ($port_max - $port_min) + $port_min))
-}
-
 apply_config()
 {
     source $config
-    sed -e "s/@SERVER_IP@/$SERVER_IP/" \
+    sed -e "s/@SERVER_NAME@/$SERVER_NAME/" \
+        -e "s/@SERVER_IP@/$SERVER_IP/" \
         -e "s/@SERVER_PORT@/$SERVER_PORT/" \
         -e "s/@SCRAMBLE@/$SCRAMBLE/" \
         $1
+}
+
+check_name()
+{
+    if echo "$1" | grep -q '[^a-zA-Z0-9_\-]'; then
+        err_exit "'$1' contains symbols other than [a-zA-Z0-9_\-]"
+    fi
 }
 
 script="$(basename $0)"
@@ -57,4 +53,6 @@ config=$script_dir/output/config.sh
 
 easyrsa_dir=$output_dir/openvpn-ca
 ca_crt=$easyrsa_dir/pki/ca.crt
+crl=$easyrsa_dir/pki/crl.pem
 ta_key=$easyrsa_dir/ta.key
+dh_param=$easyrsa_dir/pki/dh.pem

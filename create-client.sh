@@ -22,6 +22,7 @@ if [ $# -eq 0 ]; then
 fi
 
 mode='create'
+
 while [ $# -gt 0 ]; do
     if [ "$1" = "--help" ]; then
         usage
@@ -42,9 +43,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if echo "$client_name" | grep -q '[^a-zA-Z0-9_\-]'; then
-    err_exit "'$client_name' contains symbols other than [a-zA-Z0-9_\-]"
-fi
+check_name "$client_name"
 
 verify_path $easyrsa_dir
 verify_path $config
