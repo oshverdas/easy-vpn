@@ -94,7 +94,8 @@ if ! [ -e $config ]; then
     echo "SERVER_PORT='$server_port'" >>$config
 
     if [ "$scramble" = "y" ]; then
-        echo "SCRAMBLE='scramble xorptrpos'" >>$config
+        which openssl >/dev/null || err_exit "openssl not found"
+        echo "SCRAMBLE='scramble xormask $(openssl rand -hex 32)'" >>$config
     else
         echo "SCRAMBLE=''" >>$config
     fi
