@@ -72,5 +72,8 @@ script="$(basename $0)"
 script_dir="$(dirname $0)"
 
 output_dir=$script_dir/output
-easyrsa_dir=$output_dir/openvpn-ca
 config=$script_dir/output/config.sh
+
+easyrsa_dir=$output_dir/openvpn-ca
+ca_crt=$easyrsa_dir/pki/ca.crt
+ta_key=$easyrsa_dir/ta.key

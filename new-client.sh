@@ -34,8 +34,6 @@ fi
 verify_path $easyrsa_dir
 verify_path $config
 
-ca_crt=$easyrsa_dir/pki/ca.crt
-ta_key=$easyrsa_dir/ta.key
 #client_cert_req=$easyrsa_dir/pki/reqs/$client_name.req
 #client_cert_crt=$easyrsa_dir/pki/issued/$client_name.crt
 client_cert_key=$easyrsa_dir/pki/private/$client_name.key

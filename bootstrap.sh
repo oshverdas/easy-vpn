@@ -53,12 +53,14 @@ fi
 if ! [ -d $easyrsa_dir ]; then
     make_ca_dir $easyrsa_dir &&
         pushd $easyrsa_dir &&
-        easyrsa --nopass init-pki &&
-        echo 'OpenVPN Server' | easyrsa --nopass build-ca &&
+        easyrsa init-pki &&
+        echo 'OpenVPN CA' | easyrsa build-ca nopass &&
         openvpn --genkey secret ta.key &&
         popd ||
         { echo 'easy-rsa setup failed'; exit 1; }
 fi
+echo "Created PKI with CA at:"
+echo $easyrsa_dir
 
 echo -n >$config
 
@@ -77,3 +79,7 @@ if [ "$scramble" = "y" ]; then
 else
     echo "SCRAMBLE=''" >>$config
 fi
+
+echo "Created config at:"
+echo $config
+cat $config
