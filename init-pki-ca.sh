@@ -47,6 +47,9 @@ easyrsa init-pki ||
 echo 'Easy-RSA CA' | easyrsa build-ca nopass ||
     err_exit 'build-ca failed'
 
+easyrsa gen-crl ||
+    err_exit 'gen-crl failed'
+
 openvpn --genkey secret ta.key ||
     err_exit 'TA key generation failed'
 

@@ -146,7 +146,7 @@ transfer_file()
     perm=${4:-}
     target=$to/$(basename $from)
 
-    sudo $operation $(readlink -f $from) $to/ &&
+    sudo $operation $(readlink -f $from) $to/ ||
         err_exit "Failed to transfer $from to $to"
     if [ -n "$perm" ]; then
         sudo chmod $perm $target ||
@@ -158,12 +158,9 @@ if [ "$install" = "y" ]; then
     etc_openvpn=/etc/openvpn
     etc_server=$etc_openvpn/server
 
-    transfer_file 'cp -v' $server_conf $etc_openvpn
+    transfer_file 'cp -v' $server_conf $etc_server 644
 
-    for cert in $ca_crt $ta_key $dh_param $server_key $server_crt; do
-        transfer_file 'cp -v' $cert $etc_server 600
+    for file in $ca_crt $ta_key $dh_param $server_key $server_crt $crl; do
+        transfer_file 'cp -v' $file $etc_server 600
     done
-
-    [ -e $crl ] || touch $crl
-    transfer_file 'ln -sv' $crl $etc_server 600
 fi
