@@ -48,14 +48,11 @@ check_name "$client_name"
 verify_path $easyrsa_dir
 verify_path $config
 
-client_cert_inline=$easyrsa_dir/pki/inline/$client_name.inline
-if ! [ -e $client_cert_inline ]; then
-    client_cert_inline=$easyrsa_dir/pki/inline/private/$client_name.inline
-fi
+client_req=$easyrsa_dir/pki/reqs/$client_name.req
 
-if [ $mode = create ] && [ -e $client_cert_inline ]; then
+if [ $mode = create ] && [ -e $client_req ]; then
     err_exit "'$client_name' already exists"
-elif [ $mode = update ] && [ ! -e $client_cert_inline ]; then
+elif [ $mode = update ] && [ ! -e $client_req ]; then
     err_exit "'$client_name' doesn't exist"
 fi
 
@@ -72,9 +69,13 @@ if [ $mode = create ]; then
     popd >/dev/null
 fi
 
-output_dir=output
 client_ovpn_file=$output_dir/$client_name.ovpn
 client_ovpn_template=$script_dir/client-template.ovpn
+
+client_cert_inline=$easyrsa_dir/pki/inline/$client_name.inline
+if ! [ -e $client_cert_inline ]; then
+    client_cert_inline=$easyrsa_dir/pki/inline/private/$client_name.inline
+fi
 
 verify_path $client_cert_inline
 verify_path $client_ovpn_template
