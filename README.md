@@ -7,24 +7,44 @@ sudo apt-get update
 sudo apt-get install openvpn easy-rsa
 ```
 
-Initialise PKI and config
+For `openvpn` with xor patch
+
 ```
-./bootstrap.sh
+./openvpn-replace.sh $HOME/openvpn-xor/src/openvpn/openvpn
+./init-pki-ca.sh
+./create-server.sh --name server-xor --scramble --install
+./systemd-enable.sh
+```
+
+For normal `openvpn`
+
+```
+./init-pki-ca.sh
+./create-server.sh --install
+./systemd-enable.sh
 ```
 
 ## Client
 
-Add new users by running
+Add new clients by running
+
 ```
-./new-client.sh <name>
+./create-client.sh client_name
 ```
 
-Then transfer `<name>.zip` on a target machine and use .ovpn file to configure OpenVPN client.
+Then transfer `client_name.zip` or `client_name.ovpn` to the target machine using a secure channel, and use the
+.ovpn file to configure the OpenVPN client.
 
-### Linux
+### Connect
 
-https://wiki.archlinux.org/title/OpenVPN
+`openvpn` with xor patch connection command
 
-### Windows
+```
+sudo ./openvpn-xor/src/openvpn/openvpn --config client_name.ovpn
+```
 
-https://openvpn.net/client/client-connect-vpn-for-windows/
+For normal `openvpn`
+
+```
+sudo openvpn --config client_name.ovpn
+```
