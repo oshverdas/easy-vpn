@@ -4,8 +4,10 @@
 
 ```
 sudo apt-get update
-sudo apt-get install openvpn easy-rsa
+sudo apt-get install openvpn easy-rsa iptables
 ```
+
+### OpenVPN
 
 For `openvpn` with xor patch
 
@@ -24,6 +26,14 @@ For normal `openvpn`
 ./systemd-enable.sh
 ```
 
+### Network
+
+Run once to configure server network
+
+```
+./network.sh
+```
+
 ## Client
 
 Add new clients by running
@@ -35,7 +45,7 @@ Add new clients by running
 Then transfer `client_name.zip` or `client_name.ovpn` to the target machine using a secure channel, and use the
 .ovpn file to configure the OpenVPN client.
 
-### Connect
+### Connecting
 
 `openvpn` with xor patch connection command
 
