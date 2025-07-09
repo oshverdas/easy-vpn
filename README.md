@@ -1,5 +1,8 @@
 # easy-vpn
 
+Installs and configures OpenVPN on a Linux server (tested on Ubuntu 24.04).
+Clients can be added with the management script.
+
 ## Server
 
 ```
