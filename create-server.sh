@@ -1,6 +1,8 @@
 #!/bin/bash
 set -u
 
+source $(dirname $0)/common-src.sh
+
 server_ip=''
 server_port=''
 scramble=''
@@ -36,31 +38,11 @@ HELP
     shift
 done
 
-source common-src.sh
 
-mkdir -p $output_dir
-
-if ! which easyrsa; then
-    echo "'easy-rsa' package is not installed" >&2
+if ! [ -d $output_dir ]; then
+    echo "Run init-pki-ca.sh first" >&2
     exit 1
 fi
-
-if ! which openvpn; then
-    echo "'openvpn' package is not installed" >&2
-    exit 1
-fi
-
-if ! [ -d $easyrsa_dir ]; then
-    make_ca_dir $easyrsa_dir &&
-        pushd $easyrsa_dir &&
-        easyrsa init-pki &&
-        echo 'OpenVPN CA' | easyrsa build-ca nopass &&
-        openvpn --genkey secret ta.key &&
-        popd ||
-        { echo 'easy-rsa setup failed'; exit 1; }
-fi
-echo "Created PKI with CA at:"
-echo $easyrsa_dir
 
 echo -n >$config
 

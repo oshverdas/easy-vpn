@@ -49,25 +49,6 @@ apply_config()
         $1
 }
 
-make_ca_dir()
-{
-    [ -e "$1" ] && { echo "$1 exists. Aborting." ; return 1 ; }
-    mkdir -p "$1"
-    chmod 700 "$1"
-    local easy_rsa_files
-    if [ -d /usr/share/easy-rsa ]; then
-        easy_rsa_files=/usr/share/easy-rsa
-        if [ -x $easy_rsa_files/easyrsa ]; then
-            sudo ln -sv $easy_rsa_files/easyrsa /usr/local/bin/
-        fi
-    else
-        easy_rsa_files=/etc/easy-rsa
-    fi
-    ln -s $easy_rsa_files/x509-types "$1"
-    cp $easy_rsa_files/openssl-easyrsa.cnf "$1"
-    cp $easy_rsa_files/vars* "$1/vars"
-}
-
 script="$(basename $0)"
 script_dir="$(dirname $0)"
 

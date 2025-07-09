@@ -34,60 +34,49 @@ fi
 verify_path $easyrsa_dir
 verify_path $config
 
-#client_cert_req=$easyrsa_dir/pki/reqs/$client_name.req
-#client_cert_crt=$easyrsa_dir/pki/issued/$client_name.crt
-client_cert_key=$easyrsa_dir/pki/private/$client_name.key
 client_cert_inline=$easyrsa_dir/pki/inline/$client_name.inline
 if ! [ -e $client_cert_inline ]; then
     client_cert_inline=$easyrsa_dir/pki/inline/private/$client_name.inline
 fi
 
-if [ $mode = create ] && [ -e $client_cert_key ]; then
+if [ $mode = create ] && [ -e $client_cert_inline ]; then
     err_exit "'$client_name' already exists"
-elif [ $mode = update ] && [ ! -e $client_cert_key ]; then
+elif [ $mode = update ] && [ ! -e $client_cert_inline ]; then
     err_exit "'$client_name' doesn't exist"
 fi
 
-
 if [ $mode = create ]; then
-    pushd $easyrsa_dir
-    yes 'yes' | easyrsa --nopass build-client-full $client_name
-    if [ $? != 0 ]; then
-        err_exit "A call to easyrsa has failed"
-    fi
-    popd
+    verify_path $easyrsa_dir
+    verify_path $ca_crt
+    verify_path $ta_key
+
+    pushd $easyrsa_dir >/dev/null
+
+    yes 'yes' | easyrsa build-client-full $client_name nopass ||
+        err_exit 'build-client-full failed'
+
+    popd >/dev/null
 fi
 
-verify_path $ca_crt
-verify_path $ta_key
-#verify_path $client_cert_crt
-#verify_path $client_cert_key
 verify_path $client_cert_inline
 
 output_dir=output
 client_ovpn_file=$output_dir/$client_name.ovpn
 
-echo "Generating $client_ovpn_file"
+apply_config $client_ovpn_template >$client_ovpn_file &&
+    print_cert $client_cert_inline >>$client_ovpn_file &&
+    echo '<tls-auth>' >>$client_ovpn_file &&
+    print_cert $ta_key >>$client_ovpn_file &&
+    echo '</tls-auth>' >>$client_ovpn_file ||
+    err_exit "$client_ovpn_file file generation failed"
 
-apply_config $client_ovpn_template >$client_ovpn_file
-print_cert $client_cert_inline >>$client_ovpn_file
-echo '<tls-auth>' >>$client_ovpn_file
-print_cert $ta_key >>$client_ovpn_file
-echo '</tls-auth>' >>$client_ovpn_file
-
-#client_output_dir=$output_dir/$client_name
-#mkdir -p $client_output_dir
-#client_output_certs_dir=$client_output_dir/certs
-#mkdir -p $client_output_certs_dir
-#cp -v $ca_crt $ta_key $client_cert_crt $client_cert_key \
-#    $client_cert_inline $client_output_certs_dir/
+echo "Successfully created client '$client_name'. OpenVPN file at:"
+echo $(readlink -f $client_ovpn_file)
 
 if which zip &>/dev/null; then
-    pushd $output_dir
+    pushd $output_dir >/dev/null
     archive=${client_name}.zip
-    zip -r $archive $(basename $client_ovpn_file)
-    popd
-    echo "$archive"
+    zip -r $archive $(basename $client_ovpn_file) >/dev/null
+    popd >/dev/null
+    echo $(readlink -f $output_dir/$archive)
 fi
-
-echo "Done"
