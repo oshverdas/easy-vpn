@@ -12,7 +12,7 @@ sudo apt-get install openvpn easy-rsa iptables
 
 ### OpenVPN
 
-For `openvpn` with xor patch
+For `openvpn` with xor patch (first build [oshverdas/openvpn-xor](https://github.com/oshverdas/openvpn-xor/))
 
 ```
 ./openvpn-replace.sh $HOME/openvpn-xor/src/openvpn/openvpn
