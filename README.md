@@ -48,6 +48,12 @@ Add new clients by running
 Then transfer `client_name.zip` or `client_name.ovpn` to the target machine using a secure channel, and use the
 .ovpn file to configure the OpenVPN client.
 
+E.g. with rsync
+
+```
+rsync --progress -az user@SERVER_IP:/home/user/easy-vpn/output/client_name.ovpn ./
+```
+
 ### Connecting
 
 `openvpn` with xor patch connection command
