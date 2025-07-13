@@ -29,6 +29,8 @@ For normal `openvpn`
 ./systemd-enable.sh
 ```
 
+Note: If systemd service hangs after start/restart, change type to simple (`Type=simple`) in `/usr/lib/systemd/system/openvpn-server@.service`.
+
 ### Network
 
 Run once to configure server network
